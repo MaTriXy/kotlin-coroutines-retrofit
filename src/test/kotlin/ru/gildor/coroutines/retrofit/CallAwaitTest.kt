@@ -1,20 +1,42 @@
+/*
+ * Copyright 2018 Andrey Mischenko
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package ru.gildor.coroutines.retrofit
 
-import kotlinx.coroutines.experimental.CoroutineScope
-import kotlinx.coroutines.experimental.Unconfined
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.runBlocking
-import org.junit.Assert.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Test
 import retrofit2.Call
 import retrofit2.HttpException
 import ru.gildor.coroutines.retrofit.util.MockedCall
 import ru.gildor.coroutines.retrofit.util.NullBodyCall
 import ru.gildor.coroutines.retrofit.util.errorResponse
-import kotlin.coroutines.experimental.coroutineContext
 
 private const val DONE = "Done!"
 
+@ExperimentalCoroutinesApi
 class CallAwaitTest {
     @Test
     fun asyncSuccess() = testBlocking {
@@ -232,14 +254,14 @@ class CallAwaitTest {
     }
 
     private fun <T> checkRequestCancelWithException(
-            block: suspend (Call<String>) -> T
+        block: suspend (Call<String>) -> T
     ) = testBlocking {
         val request = MockedCall(
-                ok = DONE,
-                autoStart = false,
-                cancelException = IllegalStateException()
+            ok = DONE,
+            autoStart = false,
+            cancelException = IllegalStateException()
         )
-        val async = async(coroutineContext, block = { block(request) })
+        val async = async(Dispatchers.Unconfined, block = { block(request) })
         //We shouldn't crash on cancel exception
         try {
             assertFalse(request.isCanceled)
@@ -252,10 +274,10 @@ class CallAwaitTest {
 
     private fun <T> checkJobCancelWithException(block: suspend (Call<String>) -> T) = testBlocking {
         val request = MockedCall<String>(
-                exception = IllegalArgumentException(),
-                autoStart = false
+            exception = IllegalArgumentException(),
+            autoStart = false
         )
-        val result = async(coroutineContext) {
+        val result = async(Dispatchers.Unconfined) {
             block(request)
         }
         result.cancel()
@@ -264,16 +286,16 @@ class CallAwaitTest {
     }
 
     private fun <T> checkJobCancel(
-            block: suspend (Call<String>) -> T
+        block: suspend (Call<String>) -> T
     ) = testBlocking {
         val request = MockedCall(DONE, autoStart = false)
-        val async = async(coroutineContext) { block(request) }
+        val async = async(Dispatchers.Unconfined) { block(request) }
         assertFalse(request.isCanceled)
         async.cancel()
         assertTrue(request.isCanceled)
     }
-}
-
-private fun testBlocking(block: suspend CoroutineScope.() -> Unit) {
-    runBlocking(Unconfined, block)
+    
+    private fun testBlocking(block: suspend CoroutineScope.() -> Unit) {
+        runBlocking(block = block)
+    }
 }
