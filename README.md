@@ -19,7 +19,7 @@ Download the [JAR](https://bintray.com/gildor/maven/kotlin-coroutines-retrofit#f
 Gradle:
 
 ```groovy
-compile 'ru.gildor.coroutines:kotlin-coroutines-retrofit:1.1.0'
+implementation 'ru.gildor.coroutines:kotlin-coroutines-retrofit:1.1.0'
 ```
 
 Maven:
@@ -194,8 +194,7 @@ fun main(args: Array<String>): Unit = runBlocking {
 
 ## Parallel requests
 
-Sometimes you want to run a few requests in parallel and don't want to wait for the previous request to make the next one.
-You can do that by wrapping calls with `kotlinx.coroutines` [async()](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.experimental/async.html)
+By wrapping call with `kotlinx.coroutines` [async()](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.experimental/async.html), you may run a few requests parallelly without waiting for the previous request.
 
 
 ```kotlin
